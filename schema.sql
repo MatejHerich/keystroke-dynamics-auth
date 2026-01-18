@@ -48,3 +48,11 @@ INSERT INTO accounts (user_id, iban, balance)
 
 VALUES (1, 'SK7711000000001234567890', 12540.50)
     ON DUPLICATE KEY UPDATE balance = 12540.50;
+
+CREATE TABLE verification_samples (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    key_pressed VARCHAR(10),
+    dwell_time DOUBLE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

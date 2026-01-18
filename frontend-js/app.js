@@ -67,7 +67,9 @@ loginForm.addEventListener('submit',async (e) => {
        const resultText = await  response.text();
        alert(resultText);
        if(resultText.includes("úspešné")){
-           localStorage.setItem('loggedUser',usernameInput.value);
+           const now = new Date().getTime();
+           sessionStorage.setItem('loggedUser',usernameInput.value);
+           sessionStorage.setItem('loginTimestamp',now.toString());
            window.location.href = "dashboard.html";
        }
    }catch (error){

@@ -1,6 +1,7 @@
 package com.example.appbackend;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,6 +21,8 @@ public class AuthController {
 
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private VerificationSampleRepository verificationSampleRepository;
 
     @PostMapping("/login")
     public String login(@RequestBody Map<String, Object> data) {
@@ -57,5 +60,19 @@ public class AuthController {
             }
         }
         return response;
+    }
+
+    @PostMapping("/verify-payment")
+    public ResponseEntity<String> verifyPayment(@RequestBody Map<String, Object> payload) {
+        String username = (String) payload.get("username");
+        List<Map<String, Object>> biometrics = (List<Map<String, Object>>) payload.get("phraseBiometrics");
+        for(Map<String, Object> sample : biometrics) {
+            VerificationSample vs = new VerificationSample();
+            vs.setUsername(username);
+            vs.setKeyPressed((String) sample.get("key"));
+            vs.setDwellTime(Double.parseDouble(sample.get("dwell").toString()));
+            verificationSampleRepository.save(vs);
+        }
+        return ResponseEntity.ok("Biometria platby uložená a overená.");
     }
 }
