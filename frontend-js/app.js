@@ -66,6 +66,10 @@ loginForm.addEventListener('submit',async (e) => {
        });
        const resultText = await  response.text();
        alert(resultText);
+       if(resultText.includes("úspešné")){
+           localStorage.setItem('loggedUser',usernameInput.value);
+           window.location.href = "dashboard.html";
+       }
    }catch (error){
        alert(error);
    }

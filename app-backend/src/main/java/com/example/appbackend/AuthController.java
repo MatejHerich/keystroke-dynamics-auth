@@ -2,6 +2,8 @@ package com.example.appbackend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,39 +12,50 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class AuthController {
 
-    @Autowired // 1. Spring automaticky "pripojí" most k tabuľke používateľov
+    @Autowired
     private UserRepository userRepository;
 
-    @Autowired // 2. Spring automaticky "pripojí" most k tabuľke biometrie
+    @Autowired
     private BiometricRepository biometricRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     @PostMapping("/login")
     public String login(@RequestBody Map<String, Object> data) {
         String username = (String) data.get("username");
         String password = (String) data.get("password");
         List<Map<String, Object>> biometrics = (List<Map<String, Object>>) data.get("biometrics");
-
-        // 1. KROK: Hľadáme používateľa v databáze
         User existingUser = userRepository.findByUsername(username);
-
-        // 2. KROK: Overenie hesla a existencie
         if (existingUser != null && existingUser.getPassword().equals(password)) {
-
-            // 3. KROK: Ak je heslo správne, uložíme biometrické vzorky pre neskoršiu analýzu
             for (Map<String, Object> sampleData : biometrics) {
                 BiometricSample sample = new BiometricSample();
-                sample.setUser(existingUser); // Priradíme k nájdenému používateľovi
+                sample.setUser(existingUser);
                 sample.setFieldName((String) sampleData.get("field"));
                 sample.setKeyPressed((String) sampleData.get("key"));
                 sample.setDwellTime(Double.parseDouble(sampleData.get("dwell").toString()));
 
                 biometricRepository.save(sample);
             }
-
             return "Prihlásenie úspešné. Dáta pre biometriu boli zaznamenané.";
         } else {
-            // 4. KROK: Ak meno alebo heslo nesedí
             return "Chyba: Nesprávne meno alebo heslo!";
         }
+    }
+
+    @GetMapping("/account-info/{username}")
+    public Map<String, Object> accountInfo(@PathVariable String username) {
+        User user = userRepository.findByUsername(username);
+        Map<String, Object> response = new HashMap<>();
+
+        if (user != null) {
+            Account account = accountRepository.findByUser(user);
+            if (account != null) {
+                response.put("username", user.getUsername());
+                response.put("balance", account.getBalance());
+                response.put("iban", account.getIban());
+            }
+        }
+        return response;
     }
 }
