@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,6 +21,10 @@ public class AuthController {
     private AccountRepository accountRepository;
     @Autowired
     private VerificationSampleRepository verificationSampleRepository;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @PostMapping("/login")
     public String login(@RequestBody Map<String, Object> data) {
@@ -62,17 +64,71 @@ public class AuthController {
         return response;
     }
 
+    @GetMapping("/transactions/{username}")
+    public ResponseEntity<?> transactionHistory(@PathVariable String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Používateľ neexistuje."));
+        }
+
+        Account account = accountRepository.findByUser(user);
+        if (account == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Účet používateľa neexistuje."));
+        }
+
+        List<Map<String, Object>> response = transactionRepository.findByAccountOrderByTransactionDateDesc(account)
+                .stream()
+                .map(transaction -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", transaction.getId());
+                    item.put("recipientIban", transaction.getRecipientIban());
+                    item.put("amount", transaction.getAmount());
+                    item.put("description", transaction.getDescription());
+                    item.put("transactionDate", transaction.getTransactionDate());
+                    return item;
+                })
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/verify-payment")
-    public ResponseEntity<String> verifyPayment(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> verifyPayment(@RequestBody Map<String, Object> payload) {
         String username = (String) payload.get("username");
+        String recipientIban = (String) payload.get("recipientIban");
+        Double amount = payload.get("amount") == null ? null : Double.parseDouble(payload.get("amount").toString());
+        String variableSymbol = (String) payload.get("variableSymbol");
+        String paymentNote = (String) payload.get("paymentNote");
         List<Map<String, Object>> biometrics = (List<Map<String, Object>>) payload.get("phraseBiometrics");
-        for(Map<String, Object> sample : biometrics) {
+
+        if (biometrics == null || biometrics.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Chýbajú biometrické dáta pre potvrdenie platby."));
+        }
+
+        for (Map<String, Object> sample : biometrics) {
             VerificationSample vs = new VerificationSample();
             vs.setUsername(username);
             vs.setKeyPressed((String) sample.get("key"));
             vs.setDwellTime(Double.parseDouble(sample.get("dwell").toString()));
             verificationSampleRepository.save(vs);
         }
-        return ResponseEntity.ok("Biometria platby uložená a overená.");
+
+        try {
+            TransactionService.TransactionResult result = transactionService.executeTransaction(
+                    username,
+                    recipientIban,
+                    amount,
+                    variableSymbol,
+                    paymentNote
+            );
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", result.message());
+            response.put("transactionId", result.transactionId());
+            response.put("updatedBalance", result.updatedBalance());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
+        }
     }
 }

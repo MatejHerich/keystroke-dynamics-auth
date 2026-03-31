@@ -51,8 +51,6 @@ passwordInput.addEventListener('keyup',(e)=>{
 
 loginForm.addEventListener('submit',async (e) => {
    e.preventDefault();
-   const username = document.getElementById('username').value;
-   const password = passwordInput.value;
    const authPayload = {
        username: usernameInput.value,
        password: passwordInput.value,
