@@ -17,7 +17,10 @@
 <nav class="navbar navbar-dark p-3">
     <div class="container d-flex justify-content-between">
         <span class="navbar-brand fw-bold">SafeBank 🏦</span>
-        <span class="text-white fw-medium" id="welcomeUser">Používateľ: Načítavam...</span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-white fw-medium" id="welcomeUser">Používateľ: Načítavam...</span>
+            <button type="button" class="btn btn-outline-light btn-sm" id="logoutBtn">Odhlásiť</button>
+        </div>
     </div>
 </nav>
 
@@ -29,10 +32,43 @@
                 <h2 class="text-success fw-bold balance-amount" id="balanceDisplay">--- €</h2>
                 <p class="text-muted mt-3 mb-0 small">Číslo účtu:</p>
                 <p class="fw-bold text-dark" id="ibanDisplay">SK-- ---- ---- ---- ---- ----</p>
+                <div class="mt-4 text-start">
+                    <p class="text-muted small mb-1">Behaviorálny profil</p>
+                    <p class="fw-semibold mb-2" id="behavioralStatusHeadline">Načítavam stav profilu...</p>
+                    <p class="small text-muted mb-0" id="behavioralStatusDetails">Počkajte na načítanie dashboardu.</p>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-8 mb-4">
+        <div class="col-md-8 mb-4" id="trainingSection" style="display:none;">
+            <div class="card p-4 h-100">
+                <h5 class="fw-bold mb-3">Budovanie behaviorálneho profilu</h5>
+                <p class="text-muted mb-2">
+                    Kým nebude nazbieraný dostatočný počet vzoriek, používateľ ešte nemôže odosielať reálne platby.
+                    Na tréning profilu viackrát napíšte frázu <span class="fw-semibold">potvrdzujem platbu</span>.
+                </p>
+                <p class="small text-muted mb-4" id="trainingProgressText">Načítavam progres tréningu...</p>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Tréningová fráza</label>
+                    <input
+                            type="text"
+                            class="form-control form-control-lg"
+                            id="trainingVerificationInput"
+                            placeholder="Napíšte: potvrdzujem platbu"
+                            autocomplete="off">
+                </div>
+
+                <button
+                        type="button"
+                        class="btn btn-dark btn-lg w-100 fw-bold"
+                        id="submitTrainingBtn">
+                    Uložiť pseudo-autorizáciu
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-8 mb-4" id="paymentSection" style="display:none;">
             <div class="card p-4 h-100">
                 <h5 class="fw-bold mb-4">Nový bankový prevod</h5>
 
@@ -112,6 +148,57 @@
                         <tbody id="transactionHistoryBody">
                         <tr>
                             <td colspan="4" class="text-center text-muted py-4">Načítavam transakcie...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-1">
+        <div class="col-12">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Behaviorálny debug prehľad</h5>
+                    <span class="text-muted small" id="debugThresholdInfo">Načítavam...</span>
+                </div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold">Normalizovaný profil</h6>
+                            <div class="small text-muted" id="profileSummary">Načítavam profil...</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold">Váhy evaluatorov</h6>
+                            <div class="small text-muted" id="weightSummary">Načítavam váhy...</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold">Posledné rozhodnutie</h6>
+                            <div class="small text-muted" id="latestAttemptSummary">Načítavam pokusy...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Čas</th>
+                            <th>Typ</th>
+                            <th>Výsledok</th>
+                            <th>Score</th>
+                            <th>Threshold</th>
+                            <th>Samples</th>
+                            <th>Detaily evaluatorov</th>
+                        </tr>
+                        </thead>
+                        <tbody id="behaviorAttemptBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Načítavam behaviorálne pokusy...</td>
                         </tr>
                         </tbody>
                     </table>
