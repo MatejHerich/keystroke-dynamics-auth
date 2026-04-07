@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS biometric_samples (
     ) ENGINE=InnoDB;
 
 INSERT INTO users (username, password)
-VALUES ('testuser', 'heslo123')
+VALUES ('testuser', 'pbkdf2$600000$xzRdKDCnjj6deG6pJjD7ZQ==$aRJIjv2wYR4R3Hu8hGKSSkUVG9ZCmxhrURObMYgvqSM=')
     ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 CREATE TABLE IF NOT EXISTS accounts (
@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     recipient_iban VARCHAR(34) NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
     description VARCHAR(255),
+    transaction_type VARCHAR(20) DEFAULT 'OUTGOING',
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     ) ENGINE=InnoDB;
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS verification_samples (
     ) ENGINE=InnoDB;
 
 INSERT INTO users (username, password)
-VALUES ('user1', 'heslo123')
+VALUES ('user1', 'pbkdf2$600000$m1T116rPG5EZ5jibiR1PQg==$HJN5usnCiRJ9LCDpdZgJ930Iwsgo3qZzYn/NfxrwdlU=')
     ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 INSERT INTO accounts (user_id, iban, balance)

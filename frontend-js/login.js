@@ -7,6 +7,18 @@ let previousKeyUpTimes = {};
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const toggleFormLink = document.getElementById('toggleFormLink');
+const formSubtitle = document.getElementById('formSubtitle');
+
+toggleFormLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    const showRegister = loginForm.style.display !== 'none';
+    loginForm.style.display = showRegister ? 'none' : 'block';
+    registerForm.style.display = showRegister ? 'block' : 'none';
+    toggleFormLink.textContent = showRegister ? 'Máte účet? Prihláste sa' : 'Nemáte účet? Zaregistrujte sa';
+    formSubtitle.textContent = showRegister ? 'Vytvorte si nový účet' : 'Zadajte údaje pre prístup k účtu';
+});
 
 passwordInput.addEventListener('keydown',(e) =>{
     if(!keyDownTimes[e.code]){
@@ -55,6 +67,29 @@ passwordInput.addEventListener('keyup',(e)=>{
         keyData.push(record);
         previousKeyUpTimes.password = keyUpTime;
         delete keyDownTimes[e.code];
+    }
+});
+
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        username: document.getElementById('regUsername').value,
+        password: document.getElementById('regPassword').value,
+        balance: document.getElementById('regBalance').value
+    };
+    try {
+        const response = await fetch(`${API_BASE}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        alert(result.message);
+        if (response.ok) {
+            toggleFormLink.click();
+        }
+    } catch (error) {
+        alert(error);
     }
 });
 

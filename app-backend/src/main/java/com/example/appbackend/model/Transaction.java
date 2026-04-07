@@ -17,6 +17,8 @@ public class Transaction {
     private String recipientIban;
     private Double amount;
     private String description;
+    @Column(name = "transaction_type")
+    private String transactionType;
     private LocalDateTime transactionDate = LocalDateTime.now();
 
     public Long getId() {
@@ -57,6 +59,14 @@ public class Transaction {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public LocalDateTime getTransactionDate() {

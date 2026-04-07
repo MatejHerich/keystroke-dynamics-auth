@@ -7,6 +7,14 @@ let previousKeyUpTimes = {};
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const toggleFormLink = document.getElementById('toggleFormLink');
+const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+
+toggleFormLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerModal.show();
+});
 
 passwordInput.addEventListener('keydown',(e) =>{
     if(!keyDownTimes[e.code]){
@@ -55,6 +63,30 @@ passwordInput.addEventListener('keyup',(e)=>{
         keyData.push(record);
         previousKeyUpTimes.password = keyUpTime;
         delete keyDownTimes[e.code];
+    }
+});
+
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        username: document.getElementById('regUsername').value,
+        password: document.getElementById('regPassword').value,
+        balance: document.getElementById('regBalance').value
+    };
+    try {
+        const response = await fetch(`${API_BASE}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        alert(result.message);
+        if (response.ok) {
+            registerModal.hide();
+            registerForm.reset();
+        }
+    } catch (error) {
+        alert(error);
     }
 });
 

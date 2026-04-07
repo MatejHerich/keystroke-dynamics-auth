@@ -74,13 +74,27 @@ public class TransactionService {
             accountRepository.save(recipientAccount);
         }
 
+        String description = buildDescription(variableSymbol, paymentNote);
+
         Transaction transaction = new Transaction();
         transaction.setAccount(senderAccount);
         transaction.setRecipientIban(normalizedRecipientIban);
         transaction.setAmount(roundToCents(amount));
-        transaction.setDescription(buildDescription(variableSymbol, paymentNote));
+        transaction.setDescription(description);
+        transaction.setTransactionType("OUTGOING");
 
         Transaction savedTransaction = transactionRepository.save(transaction);
+
+        if (recipientAccount != null) {
+            Transaction incomingTransaction = new Transaction();
+            incomingTransaction.setAccount(recipientAccount);
+            incomingTransaction.setRecipientIban(senderIban);
+            incomingTransaction.setAmount(roundToCents(amount));
+            incomingTransaction.setDescription(description);
+            incomingTransaction.setTransactionType("INCOMING");
+            transactionRepository.save(incomingTransaction);
+        }
+
         return new TransactionResult(
                 savedTransaction.getId(),
                 senderAccount.getBalance(),

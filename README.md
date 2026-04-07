@@ -145,7 +145,7 @@ Databáza je navrhnutá v súbore `schema.sql`. V aktuálnom stave sú použité
 - `behavioral_profiles`
 - `transactions`
 
-Tabuľka `users` obsahuje základné údaje o používateľovi, teda `id`, `username` a `password`. Tabuľka `accounts` reprezentuje bankový účet používateľa a obsahuje `id`, `user_id`, `iban` a `balance`. Medzi používateľom a účtom je vzťah jeden používateľ = jeden účet.
+Tabuľka `users` obsahuje základné údaje o používateľovi, teda `id`, `username` a `password`. V aktuálnom stave sa heslo už neukladá ako plain text, ale ako hash. Tabuľka `accounts` reprezentuje bankový účet používateľa a obsahuje `id`, `user_id`, `iban` a `balance`. Medzi používateľom a účtom je vzťah jeden používateľ = jeden účet.
 
 Tabuľka `biometric_samples` obsahuje biometrické dáta zaznamenané pri prihlasovaní. Ukladá, ku ktorému používateľovi vzorka patrí, z ktorého poľa pochádza, ktorý kláves bol stlačený, aká bola dĺžka držania klávesu a aký bol `flight_time`. Táto tabuľka teda slúži ako prvotný zdroj behaviorálnych dát.
 
@@ -155,7 +155,7 @@ Tabuľka `verification_samples` obsahuje jednotlivé vzorky patriace ku konkrét
 
 Tabuľka `behavioral_profiles` predstavuje normalizovaný profil používateľa. Ukladajú sa tu priemerné hodnoty `dwell time`, `flight time`, odchýlky, podiel dlhých pauz a počet referenčných pokusov a vzoriek.
 
-Tabuľka `transactions` slúži na evidenciu vykonaných platieb. Obsahuje `id`, `account_id`, `recipient_iban`, `amount`, `description` a `transaction_date`. Táto tabuľka je základom pre históriu transakcií v dashboarde.
+Tabuľka `transactions` slúži na evidenciu vykonaných platieb. Obsahuje `id`, `account_id`, `recipient_iban`, `amount`, `description`, `transaction_type` a `transaction_date`. Pole `transaction_type` rozlišuje, či ide o odchádzajúcu alebo prichádzajúcu transakciu. Táto tabuľka je základom pre históriu transakcií v dashboarde.
 
 Ak by som mal databázový model zhrnúť veľmi jednoducho, tak jadro aplikácie tvorí dvojica používateľ a účet. Na túto dvojicu sa potom pripájajú dva rôzne typy dát:
 
@@ -225,11 +225,69 @@ Hlavným controllerom aplikácie je `AuthController`. Tento controller momentál
 
 Inými slovami, `AuthController` je aktuálne hlavný vstupný bod do backendu. Všetko, čo používateľ robí vo fronte, sa vo väčšine prípadov skončí práve tu. Preto je to jedna z najdôležitejších tried v celom projekte.
 
-### 8.1 Endpoint `/api/auth/login`
+### 8.1 Endpoint `/api/auth/register`
+
+<b>Úloha endpointu:</b> vytvoriť nového používateľa a automaticky mu založiť účet.
+
+Najnovšie bola do aplikácie doplnená aj registrácia používateľa. Tento endpoint prijíma používateľské meno, heslo a voliteľný počiatočný zostatok. Backend najprv skontroluje, či boli zadané povinné údaje a či používateľ s rovnakým menom už neexistuje. Ak všetko prejde, vytvorí sa nový `User`, následne nový `Account` a používateľ dostane automaticky vygenerovaný IBAN. Ešte pred uložením sa však heslo zahashuje, takže databáza neuchováva jeho pôvodný textový tvar.
+
+Najprv sa spracujú vstupné údaje a základné validácie:
+
+```java
+@PostMapping("/register")
+public ResponseEntity<?> register(@RequestBody Map<String, Object> data) {
+    String username = (String) data.get("username");
+    String password = (String) data.get("password");
+    Double balance = data.get("balance") == null ? 0.0 : Double.parseDouble(data.get("balance").toString());
+
+    if (username == null || username.isBlank() || password == null || password.isBlank()) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Meno a heslo sú povinné."));
+    }
+    if (userRepository.findByUsername(username) != null) {
+        return ResponseEntity.status(409).body(Map.of("message", "Používateľ s týmto menom už existuje."));
+    }
+```
+
+Potom sa vytvorí používateľ, účet a vygeneruje sa jeho IBAN:
+
+```java
+    User user = new User();
+    user.setUsername(username);
+    user.setPassword(hashPassword(password));
+    userRepository.save(user);
+
+    String iban = generateIban(user.getId());
+    Account account = new Account();
+    account.setUser(user);
+    account.setIban(iban);
+    account.setBalance(balance);
+    accountRepository.save(account);
+
+    return ResponseEntity.ok(Map.of(
+            "message", "Registrácia úspešná. Môžete sa prihlásiť.",
+            "iban", iban
+    ));
+}
+```
+
+Pomocná metóda pre IBAN je momentálne jednoduchá a deterministická:
+
+```java
+private String generateIban(Long userId) {
+    String accountNumber = String.format("%016d", userId);
+    return "SK00" + "1100" + accountNumber;
+}
+```
+
+Táto registrácia je dôležitá najmä z pohľadu kompletizácie aplikácie. Projekt už nie je odkázaný len na ručne vložených používateľov v databáze. Nový účet si vie vytvoriť aj samotný používateľ cez frontend rozhranie.
+
+Zároveň je to dôležitý bezpečnostný posun. Aj keď systém zatiaľ nepoužíva plnohodnotný Spring Security stack, aspoň základná vrstva ochrany hesiel už funguje korektnejšie než pôvodné plain text riešenie.
+
+### 8.2 Endpoint `/api/auth/login`
 
 <b>Úloha endpointu:</b> spracovanie prihlásenia a prvotný zber behaviorálnych dát.
 
-Tento endpoint spracováva prihlasovanie používateľa. Frontend pošle `username`, `password` a pole biometrických vzoriek. Backend následne nájde používateľa podľa mena, porovná heslo, pri úspešnom prihlásení uloží biometrické vzorky do `biometric_samples` a vráti textovú správu o výsledku. Tento endpoint je základom prvého behaviorálneho zberu dát.
+Tento endpoint spracováva prihlasovanie používateľa. Frontend pošle `username`, `password` a pole biometrických vzoriek. Backend následne nájde používateľa podľa mena, porovná zadané heslo s uloženým hashom, pri úspešnom prihlásení uloží biometrické vzorky do `biometric_samples` a vráti textovú správu o výsledku. Tento endpoint je základom prvého behaviorálneho zberu dát.
 
 Najprv sa z requestu načítajú základné údaje:
 
@@ -246,7 +304,18 @@ public ResponseEntity<?> login(@RequestBody Map<String, Object> data, HttpSessio
 Potom nasleduje samotné overenie a uloženie behaviorálnych vzoriek:
 
 ```java
-    if (existingUser != null && existingUser.getPassword().equals(password)) {
+    boolean authenticated = false;
+    if (existingUser != null) {
+        if (isHashedPassword(existingUser.getPassword())) {
+            authenticated = matchesPassword(password, existingUser.getPassword());
+        } else if (existingUser.getPassword().equals(password)) {
+            authenticated = true;
+            existingUser.setPassword(hashPassword(password));
+            userRepository.save(existingUser);
+        }
+    }
+
+    if (authenticated) {
         session.invalidate();
         HttpSession authenticatedSession = request.getSession(true);
         authenticatedSession.setAttribute("loggedUser", existingUser.getUsername());
@@ -271,7 +340,7 @@ Potom nasleduje samotné overenie a uloženie behaviorálnych vzoriek:
 }
 ```
 
-Z tejto implementácie je vidieť, že `AuthController` pri login procese nerieši iba autentifikáciu, ale zároveň aj ukladanie behaviorálnych vzoriek a vytvorenie serverovej session. Frontend pošle meno, heslo a zoznam objektov s biometrickými údajmi. Backend tieto objekty prechádza v cykle, prevádza ich na entitu `BiometricSample` a zároveň si do session uloží identitu používateľa.
+Z tejto implementácie je vidieť, že `AuthController` pri login procese nerieši iba autentifikáciu, ale zároveň aj ukladanie behaviorálnych vzoriek a vytvorenie serverovej session. Frontend pošle meno, heslo a zoznam objektov s biometrickými údajmi. Backend najprv bezpečne porovná heslo s hashom, prípadne automaticky premigruje starší plain text účet na hash, a až potom uloží biometrické dáta a identitu používateľa do session.
 
 Toto je zároveň prvý moment, kde sa ukazuje hlavná filozofia aplikácie. Systém nekontroluje len to, či používateľ zadal správne údaje, ale zároveň si začína ukladať aj spôsob, akým ich zadal.
 
@@ -297,13 +366,13 @@ AuthController
 odpoved pre frontend
 ```
 
-### 8.2 Endpoint `/api/auth/account-info`
+### 8.3 Endpoint `/api/auth/account-info`
 
 <b>Úloha endpointu:</b> načítať údaje o účte pre dashboard na základe aktívnej session.
 
 Tento endpoint načíta údaje o účte prihláseného používateľa. Na rozdiel od staršej verzie už frontend neposiela používateľské meno v URL adrese. Backend si najprv z `HttpSession` vyžiada atribút `loggedUser`, podľa neho nájde používateľa a následne aj jeho účet. Vracia používateľské meno, zostatok a IBAN. Tieto údaje sa potom zobrazujú v dashboarde.
 
-### 8.3 Endpoint `/api/auth/transactions`
+### 8.4 Endpoint `/api/auth/transactions`
 
 <b>Úloha endpointu:</b> dodať dashboardu zoznam vykonaných transakcií prihláseného používateľa.
 
@@ -339,11 +408,18 @@ Až potom sa transakcie prevedú na odpoveď pre frontend:
             .stream()
             .map(transaction -> {
                 Map<String, Object> item = new HashMap<>();
+                String transactionType = transaction.getTransactionType() == null
+                        ? "OUTGOING"
+                        : transaction.getTransactionType().trim().toUpperCase(Locale.ROOT);
+                double amount = transaction.getAmount() == null ? 0.0 : transaction.getAmount();
+                double signedAmount = "INCOMING".equals(transactionType) ? amount : -amount;
                 // Frontend potrebuje len vybrané polia, nie celý objekt entity.
                 item.put("id", transaction.getId());
                 item.put("recipientIban", transaction.getRecipientIban());
-                item.put("amount", transaction.getAmount());
+                item.put("amount", amount);
+                item.put("signedAmount", signedAmount);
                 item.put("description", transaction.getDescription());
+                item.put("transactionType", transactionType);
                 item.put("transactionDate", transaction.getTransactionDate());
                 return item;
             })
@@ -353,7 +429,7 @@ Až potom sa transakcie prevedú na odpoveď pre frontend:
 }
 ```
 
-Controller teda nepracuje iba s jednou tabuľkou, ale využíva logické väzby medzi entitami. Zároveň je tu dôležité, že frontend nedostáva celý objekt `Transaction`, ale iba tie údaje, ktoré naozaj potrebuje na vykreslenie tabuľky.
+Controller teda nepracuje iba s jednou tabuľkou, ale využíva logické väzby medzi entitami. Zároveň je tu dôležité, že frontend nedostáva celý objekt `Transaction`, ale iba tie údaje, ktoré naozaj potrebuje na vykreslenie tabuľky. Backend si dnes zároveň sám dopočíta `signedAmount`, takže frontend sa nemusí spoliehať len na textový typ transakcie.
 
 > <b>Princíp:</b> backend vracia frontendu iba tie údaje, ktoré sú potrebné na zobrazenie.
 
@@ -382,7 +458,7 @@ tabulka vo fronte
 
 Tento princíp je dôležitý aj architektonicky. Backend nemá frontendu vracať viac údajov, než je potrebné. Tým je odpoveď jednoduchšia, prehľadnejšia a ľahšie sa ďalej spracováva v JavaScripte.
 
-### 8.4 Endpoint `/api/auth/verify-payment`
+### 8.5 Endpoint `/api/auth/verify-payment`
 
 <b>Úloha endpointu:</b> spojiť behaviorálne overenie a vykonanie platby do jedného bezpečnostného toku.
 
@@ -522,6 +598,32 @@ Následne sa spraví kontrola na vlastný účet, kontrola zostatku a odpočíta
     accountRepository.save(senderAccount);
 ```
 
+Ak ide o interný prevod medzi dvoma účtami, backend dnes už nepripíše len zostatok príjemcovi, ale uloží aj samostatný prichádzajúci záznam do jeho histórie:
+
+```java
+    Account recipientAccount = accountRepository.findByIban(normalizedRecipientIban);
+    if (recipientAccount != null) {
+        Double recipientBalance = recipientAccount.getBalance() == null ? 0.0 : recipientAccount.getBalance();
+        recipientAccount.setBalance(roundToCents(recipientBalance + amount));
+        accountRepository.save(recipientAccount);
+    }
+
+    transaction.setTransactionType("OUTGOING");
+    Transaction savedTransaction = transactionRepository.save(transaction);
+
+    if (recipientAccount != null) {
+        Transaction incomingTransaction = new Transaction();
+        incomingTransaction.setAccount(recipientAccount);
+        incomingTransaction.setRecipientIban(senderIban);
+        incomingTransaction.setAmount(roundToCents(amount));
+        incomingTransaction.setDescription(description);
+        incomingTransaction.setTransactionType("INCOMING");
+        transactionRepository.save(incomingTransaction);
+    }
+```
+
+Táto zmena rieši dôležitý praktický problém. V staršej verzii sa síce príjemcovi správne zvýšil zostatok, ale v histórii transakcií nevidel žiadny `+` záznam. Teraz už systém eviduje pohyb pre obe strany interného prevodu.
+
 Anotácia `@Transactional` je dôležitá z dôvodu konzistencie databázy. Ak by sa v strede procesu niečo pokazilo, zmeny sa nemajú zapísať len čiastočne.
 
 > <b>Význam tejto vrstvy:</b> `TransactionService` obsahuje pravidlá, ktoré majú zabezpečiť správnosť finančnej operácie.
@@ -568,6 +670,43 @@ Frontend je rozdelený na dve obrazovky:
 <b>Úloha stránky:</b> prihlásiť používateľa a zároveň zachytiť jeho spôsob písania.
 
 Login obrazovka obsahuje pole pre meno, pole pre heslo a formulár na prihlásenie. JavaScript v `login.js` sleduje `keydown` a `keyup`. Pri každom klávese si aplikácia zapamätá čas stlačenia a po uvoľnení vypočíta `dwell time`. Zároveň si pamätá aj čas predchádzajúceho uvoľnenia klávesu, takže vie vypočítať aj `flight time`.
+
+Súčasťou login stránky je dnes už aj registrácia nového účtu. V Spring Boot statickej verzii frontendu je vyriešená cez Bootstrap modal, ktorý sa otvorí po kliknutí na odkaz `Nemáte účet? Zaregistrujte sa`. Používateľ v ňom zadá nové meno, heslo a počiatočný zostatok.
+
+Najprv sa vo fronte pripraví samotný modal a formulár:
+
+```javascript
+const registerForm = document.getElementById('registerForm');
+const toggleFormLink = document.getElementById('toggleFormLink');
+const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+
+toggleFormLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerModal.show();
+});
+```
+
+Po odoslaní formulára sa registrácia pošle na backend:
+
+```javascript
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        username: document.getElementById('regUsername').value,
+        password: document.getElementById('regPassword').value,
+        balance: document.getElementById('regBalance').value
+    };
+
+    const response = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+```
+
+Ak registrácia prejde úspešne, modal sa zavrie a formulár sa vyčistí. Z pohľadu používateľa je teda login stránka už zároveň aj vstupným bodom na vytvorenie nového účtu.
+
+Treba však dodať, že v priečinku `frontend-js` je registrácia riešená trochu inak. Tam sa nepoužíva Bootstrap modal, ale prepínanie medzi prihlasovacím a registračným formulárom priamo v rámci stránky. Funkčne však ide o tú istú logiku a volá sa ten istý backend endpoint `/api/auth/register`.
 
 Najprv sa pri stlačení klávesu uloží jeho štartovací čas:
 
@@ -734,6 +873,33 @@ async function loadTransactionHistory() {
     renderTransactionHistory(data);
 }
 ```
+
+Samotné vykreslenie histórie dnes už pracuje s hodnotou `signedAmount`, ktorú pripraví backend:
+
+```javascript
+function formatSignedCurrency(value) {
+    const number = Number(value);
+    const formatted = Math.abs(number).toLocaleString('sk-SK', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    return `${number >= 0 ? '+' : '-'}${formatted} €`;
+}
+
+tableBody.innerHTML = transactions.map((transaction) => `
+    <tr>
+        <td>${formatTransactionDate(transaction.transactionDate)}</td>
+        <td class="fw-semibold">${transaction.recipientIban}</td>
+        <td>${transaction.description || '-'}</td>
+        <td class="text-end fw-bold ${Number(transaction.signedAmount) >= 0 ? 'text-success' : 'text-danger'}">${formatSignedCurrency(transaction.signedAmount)}</td>
+    </tr>
+`).join('');
+```
+
+Vďaka tomu používateľ na dashboarde jasne vidí rozdiel medzi:
+
+- odoslanou platbou, ktorá sa zobrazuje červeno so znakom `-`
+- prijatou platbou, ktorá sa zobrazuje zeleno so znakom `+`
 
 Ak profil ešte nie je pripravený, dashboard nezobrazí reálnu platbu, ale tréningovú sekciu. Používateľ tam viackrát napíše frázu `potvrdzujem platbu` a tým buduje behaviorálny profil. Až keď je nazbieraný dostatočný počet vzoriek, tréningová časť sa skryje a zobrazí sa reálna platba.
 
@@ -1420,7 +1586,7 @@ Za silné stránky aktuálneho riešenia považujem:
 
 Na druhej strane stále platí, že ide o pravidlový a heuristický systém, nie o plnohodnotný ML model. Projekt je vhodný ako akademický prototyp, ale ešte stále má svoje limity:
 
-- heslá sú plain text,
+- heslá sa už ukladajú ako hash, ale stále tam nie je plnohodnotná bezpečnostná vrstva typu Spring Security,
 - nie je použitý Spring Security,
 - thresholdy aj váhy sú nastavované ručne,
 - normalizovaný profil je stále pomerne jednoduchý,
@@ -1473,7 +1639,18 @@ public ResponseEntity<?> login(@RequestBody Map<String, Object> data,
     String password = (String) data.get("password");
     User existingUser = userRepository.findByUsername(username);
 
-    if (existingUser != null && existingUser.getPassword().equals(password)) {
+    boolean authenticated = false;
+    if (existingUser != null) {
+        if (isHashedPassword(existingUser.getPassword())) {
+            authenticated = matchesPassword(password, existingUser.getPassword());
+        } else if (existingUser.getPassword().equals(password)) {
+            authenticated = true;
+            existingUser.setPassword(hashPassword(password));
+            userRepository.save(existingUser);
+        }
+    }
+
+    if (authenticated) {
         session.invalidate();
         HttpSession authenticatedSession = request.getSession(true);
         authenticatedSession.setAttribute("loggedUser", existingUser.getUsername());
@@ -1482,7 +1659,7 @@ public ResponseEntity<?> login(@RequestBody Map<String, Object> data,
 }
 ```
 
-Táto ukážka ukazuje, že po úspešnom overení mena a hesla sa stará session zruší a vytvorí sa nová čistá session. Do nej sa uloží používateľské meno. To znamená, že backend si od tohto momentu pamätá, kto je prihlásený.
+Táto ukážka ukazuje, že po úspešnom overení hesla voči hash hodnote sa stará session zruší a vytvorí sa nová čistá session. Do nej sa uloží používateľské meno. To znamená, že backend si od tohto momentu pamätá, kto je prihlásený.
 
 ### 18.2 Session endpointy
 

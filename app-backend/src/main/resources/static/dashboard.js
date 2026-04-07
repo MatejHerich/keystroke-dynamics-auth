@@ -54,6 +54,15 @@ function formatTransactionDate(value) {
     return new Date(value).toLocaleString('sk-SK');
 }
 
+function formatSignedCurrency(value) {
+    const number = Number(value);
+    const formatted = Math.abs(number).toLocaleString('sk-SK', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    return `${number >= 0 ? '+' : '-'}${formatted} €`;
+}
+
 function renderTransactionHistory(transactions) {
     const tableBody = document.getElementById('transactionHistoryBody');
     const counter = document.getElementById('transactionCount');
@@ -70,7 +79,7 @@ function renderTransactionHistory(transactions) {
             <td>${formatTransactionDate(transaction.transactionDate)}</td>
             <td class="fw-semibold">${transaction.recipientIban}</td>
             <td>${transaction.description || '-'}</td>
-            <td class="text-end fw-bold text-danger">-${Number(transaction.amount).toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+            <td class="text-end fw-bold ${Number(transaction.signedAmount) >= 0 ? 'text-success' : 'text-danger'}">${formatSignedCurrency(transaction.signedAmount)}</td>
         </tr>
     `).join('');
 }
