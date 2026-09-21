@@ -8,6 +8,7 @@ CREATE TABLE users (
 CREATE TABLE login_attempts (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     user_id      INT       NOT NULL,
+    attempt_type VARCHAR(25) NOT NULL,
     attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     success      BOOLEAN   NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
