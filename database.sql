@@ -19,21 +19,21 @@ CREATE TABLE users (
 
 CREATE TABLE accounts (
     id       INT           NOT NULL AUTO_INCREMENT,
-    users_id INT           NOT NULL,
+    user_id INT           NOT NULL,
     iban     VARCHAR(34)   NOT NULL,
     balance  DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     currency VARCHAR(5)    NOT NULL DEFAULT 'EUR',
     PRIMARY KEY (id),
-    CONSTRAINT uq_accounts_users_id UNIQUE (users_id),
+    CONSTRAINT uq_accounts_user_id UNIQUE (user_id),
     CONSTRAINT uq_accounts_iban UNIQUE (iban),
     CONSTRAINT fk_accounts_users
-        FOREIGN KEY (users_id) REFERENCES users (id)
+        FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE = InnoDB;
 
 -- ---------- Biometric part ----------
 CREATE TABLE biometric_attempts (
     id            INT         NOT NULL AUTO_INCREMENT,
-    users_id      INT         NOT NULL,
+    user_id      INT         NOT NULL,
     attempt_type  VARCHAR(20) NOT NULL,
     context       VARCHAR(20) NOT NULL,
     final_score   DOUBLE      NULL,
@@ -42,7 +42,7 @@ CREATE TABLE biometric_attempts (
     created_at    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT fk_biometric_attempts_users
-        FOREIGN KEY (users_id) REFERENCES users (id),
+        FOREIGN KEY (user_id) REFERENCES users (id),
     CONSTRAINT chk_biometric_attempts_type
         CHECK (attempt_type IN ('TRAINING', 'GENUINE', 'IMPOSTOR')),
     CONSTRAINT chk_biometric_attempts_context
@@ -78,13 +78,13 @@ CREATE TABLE evaluator_results (
 ) ENGINE = InnoDB;
 
 CREATE TABLE biometric_profiles (
-    users_id       INT       NOT NULL,
+    user_id       INT       NOT NULL,
     training_count INT       NOT NULL,
     feature_stats  JSON      NOT NULL,
     updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (users_id),
+    PRIMARY KEY (user_id),
     CONSTRAINT fk_biometric_profiles_users
-        FOREIGN KEY (users_id) REFERENCES users (id)
+        FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE = InnoDB;
 
 -- ---------- Payments ----------
