@@ -40,6 +40,11 @@ public class AuthController {
             bindingResult.rejectValue("username", "taken", e.getMessage());
             return "register";
         }
-        return "redirect:/login";
+        return "redirect:/login?registered";
+    }
+
+    @GetMapping("/login")
+    public String showLoginForm(Model model) {
+        return "login";
     }
 }

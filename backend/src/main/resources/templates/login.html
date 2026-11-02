@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prihlásenie | Banka</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<main class="container py-5" style="max-width: 480px;">
+
+    <h1 class="h3 mb-1">Banka</h1>
+    <p class="text-muted mb-4">Prihlásenie</p>
+
+    <!-- Messages chosen by the URL parameter: /login?error, /login?logout, /login?registered -->
+    <div class="alert alert-danger" th:if="${param.error}">
+        Prihlásenie sa nepodarilo. Skontrolujte pseudonym a heslo a skúste to znova.
+    </div>
+    <div class="alert alert-success" th:if="${param.logout}">
+        Odhlásenie prebehlo úspešne.
+    </div>
+    <div class="alert alert-success" th:if="${param.registered}">
+        Účet bol vytvorený. Teraz sa prihláste.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            <!-- POST /login is processed by Spring Security itself, there is no controller method for it. -->
+            <!-- th:action adds the hidden CSRF token automatically. -->
+            <form th:action="@{/login}" method="post">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Pseudonym</label>
+                    <input type="text" id="username" name="username" class="form-control"
+                           autocomplete="username" autocapitalize="off" spellcheck="false" required autofocus>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Heslo</label>
+                    <input type="password" id="password" name="password" class="form-control"
+                           autocomplete="current-password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Prihlásiť sa</button>
+            </form>
+
+        </div>
+    </div>
+
+    <p class="text-center mt-3">
+        Nemáte účet? <a th:href="@{/register}">Zaregistrujte sa</a>
+    </p>
+
+    <p class="text-center text-muted small mt-4">
+        Výskumná aplikácia k bakalárskej práci. Nejde o skutočnú banku.
+    </p>
+
+</main>
+
+</body>
+</html>
