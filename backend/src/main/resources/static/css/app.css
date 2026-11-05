@@ -1,0 +1,331 @@
+:root {
+    --paper: #eef2ef;
+    --surface: #ffffff;
+    --ink: #1b2a33;
+    --muted: #5b6a70;
+    --rule: #d6dfd9;
+    --pine: #1f5a4c;
+    --pine-deep: #163f36;
+    --pine-tint: #e3efe9;
+    --red-ink: #a23a2e;
+    --red-tint: #f7e4e1;
+
+    --bs-body-bg: var(--paper);
+    --bs-body-color: var(--ink);
+    --bs-body-font-family: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bs-secondary-color: var(--muted);
+    --bs-border-color: var(--rule);
+    --bs-link-color: var(--pine);
+    --bs-link-color-rgb: 31, 90, 76;
+    --bs-link-hover-color: var(--pine-deep);
+    --bs-link-hover-color-rgb: 22, 63, 54;
+    --bs-form-invalid-color: var(--red-ink);
+    --bs-form-invalid-border-color: var(--red-ink);
+    --bs-box-shadow-sm: 0 1px 2px rgba(27, 42, 51, 0.06);
+}
+
+
+:focus-visible {
+    outline: 3px solid rgba(31, 90, 76, 0.45);
+    outline-offset: 2px;
+}
+
+.wrap {
+    max-width: 960px;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--pine);
+    --bs-btn-border-color: var(--pine);
+    --bs-btn-hover-bg: var(--pine-deep);
+    --bs-btn-hover-border-color: var(--pine-deep);
+    --bs-btn-active-bg: var(--pine-deep);
+    --bs-btn-active-border-color: var(--pine-deep);
+    --bs-btn-disabled-bg: var(--pine);
+    --bs-btn-disabled-border-color: var(--pine);
+    --bs-btn-focus-shadow-rgb: 31, 90, 76;
+    --bs-btn-font-weight: 600;
+    --bs-btn-padding-y: 0.625rem;
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+.form-control {
+    padding: 0.625rem 0.75rem;
+    background-color: var(--surface);
+}
+
+.form-control:focus {
+    border-color: var(--pine);
+    box-shadow: 0 0 0 0.2rem rgba(31, 90, 76, 0.2);
+}
+
+.form-control.is-invalid {
+    background-image: none;
+    padding-right: 0.75rem;
+}
+
+.card {
+    --bs-card-border-color: var(--rule);
+    --bs-card-border-radius: 0.75rem;
+    --bs-card-inner-border-radius: calc(0.75rem - 1px);
+}
+
+.alert {
+    --bs-alert-border-radius: 0.5rem;
+}
+
+.alert-danger {
+    --bs-alert-color: var(--red-ink);
+    --bs-alert-bg: var(--red-tint);
+    --bs-alert-border-color: #ecc5bf;
+}
+
+.alert-success {
+    --bs-alert-color: var(--pine-deep);
+    --bs-alert-bg: var(--pine-tint);
+    --bs-alert-border-color: #c6ddd3;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--ink);
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: var(--ink);
+}
+
+.brand-mark {
+    display: inline-flex;
+    align-items: flex-end;
+    height: 1.25rem;
+    padding-bottom: 2px;
+    border-bottom: 2px solid var(--pine);
+}
+.brand-mark i {
+    display: block;
+    height: 0.875rem;
+    background: var(--pine);
+    border-radius: 1px;
+}
+
+.brand-mark i:nth-child(1) { width: 6px; }
+.brand-mark i:nth-child(2) { width: 3px; margin-left: 3px; }
+.brand-mark i:nth-child(3) { width: 8px; margin-left: 6px; }
+.brand-mark i:nth-child(4) { width: 4px; margin-left: 2px; }
+
+.topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+}
+
+.topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4rem;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.topbar-name {
+    font-weight: 600;
+}
+
+.btn-logout {
+    padding: 0.25rem 0;
+    border: 0;
+    background: none;
+    color: var(--pine);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.btn-logout:hover {
+    color: var(--pine-deep);
+}
+
+.account-panel {
+    position: relative;
+    overflow: hidden;
+    padding: 1.75rem;
+    border-radius: 1rem;
+    background: var(--pine);
+    color: #ffffff;
+}
+
+.account-panel h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.account-panel dt {
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: #cfe3da;
+}
+
+.account-panel dd {
+    margin-bottom: 1.25rem;
+}
+
+.account-panel dd:last-of-type {
+    margin-bottom: 0;
+}
+
+.balance {
+    font-size: clamp(2.25rem, 7vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.iban {
+    font-size: 1.0625rem;
+    font-variant-numeric: tabular-nums;
+    word-spacing: 0.2em;
+}
+
+.rhythm {
+    position: absolute;
+    right: 1.75rem;
+    bottom: 1.75rem;
+    width: 13rem;
+    height: 0.75rem;
+    fill: #3d8a76;
+}
+
+.account-panel :focus-visible {
+    outline-color: #ffffff;
+}
+
+.section-title {
+    margin: 2.5rem 0 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.ledger {
+    border: 1px solid var(--rule);
+    border-radius: 0.75rem;
+    background: var(--surface);
+}
+
+.ledger-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ledger-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+}
+
+.ledger-item + .ledger-item {
+    border-top: 1px solid var(--rule);
+}
+
+.ledger-item p {
+    margin: 0;
+}
+
+.ledger-main {
+    min-width: 0;
+}
+
+.ledger-title {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ledger-meta {
+    font-size: 0.875rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ledger-side {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.amount {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.amount-rejected {
+    font-weight: 400;
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+.status-rejected {
+    display: inline-block;
+    margin-right: 0.5rem;
+    padding: 0.0625rem 0.5rem;
+    border-radius: 999px;
+    background: var(--red-tint);
+    color: var(--red-ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.empty {
+    margin: 0;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--muted);
+}
+
+.site-note {
+    margin: 3rem 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+
+.auth-page .brand {
+    margin-bottom: 2rem;
+}
+
+.auth-title {
+    margin-bottom: 1.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+@media (max-width: 767.98px) {
+    .account-panel {
+        padding: 1.25rem 1.25rem 2.75rem;
+    }
+
+    .rhythm {
+        right: 1.25rem;
+        bottom: 1.25rem;
+        width: 9rem;
+        height: 0.5rem;
+    }
+}

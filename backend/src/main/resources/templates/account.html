@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Účet')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+
+<main class="container wrap py-4" th:with="currency=${account.currency == 'EUR' ? '€' : account.currency}">
+
+    <section class="account-panel" aria-labelledby="account-title">
+        <h1 id="account-title">Bežný účet</h1>
+        <dl class="mb-0">
+            <dt>Zostatok</dt>
+            <dd class="balance"
+                th:text="${#numbers.formatDecimal(account.balance, 1, 'WHITESPACE', 2, 'COMMA') + ' ' + currency}">1 000,00 €</dd>
+            <dt>IBAN</dt>
+            <dd class="iban" th:text="${@ibanFormatter.format(account.iban)}">SK00 0000 0000 0000 0000 0003</dd>
+        </dl>
+        <svg class="rhythm" viewBox="0 0 286 10" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <rect x="0" width="9" height="10"/><rect x="23" width="6" height="10"/><rect x="51" width="11" height="10"/><rect x="71" width="7" height="10"/>
+            <rect x="108" width="10" height="10"/><rect x="130" width="5" height="10"/><rect x="153" width="8" height="10"/><rect x="187" width="12" height="10"/>
+            <rect x="207" width="6" height="10"/><rect x="229" width="9" height="10"/><rect x="258" width="7" height="10"/><rect x="276" width="10" height="10"/>
+        </svg>
+    </section>
+
+    <section aria-labelledby="payments-title">
+        <h2 id="payments-title" class="section-title">Platby</h2>
+
+        <div class="ledger">
+            <p class="empty" th:if="${#lists.isEmpty(transactions)}">Zatiaľ ste neposlali žiadnu platbu.</p>
+
+            <ul class="ledger-list" th:unless="${#lists.isEmpty(transactions)}">
+                <li class="ledger-item" th:each="t : ${transactions}"
+                    th:with="rejected=${t.status.name() == 'REJECTED'}">
+                    <div class="ledger-main">
+                        <p class="ledger-title"
+                           th:text="${#strings.isEmpty(t.description) ? 'Platba bez popisu' : t.description}">Nájom za november</p>
+                        <p class="ledger-meta" th:text="${@ibanFormatter.format(t.recipientIban)}">SK00 0000 0000 0000 0000 0001</p>
+                    </div>
+                    <div class="ledger-side">
+                        <p class="amount">
+                            <span class="status-rejected" th:if="${rejected}">Zamietnutá</span>
+                            <span th:classappend="${rejected} ? 'amount-rejected'"
+                                  th:text="${'−' + #numbers.formatDecimal(t.amount, 1, 'WHITESPACE', 2, 'COMMA') + ' ' + currency}">−350,00 €</span>
+                        </p>
+                        <p class="ledger-meta" th:text="${#temporals.format(t.createdAt, 'd. M. yyyy, HH:mm')}">3. 11. 2026, 10:35</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <p class="site-note">Výskumná aplikácia k bakalárskej práci. Nejde o skutočnú banku.</p>
+</main>
+
+</body>
+</html>
