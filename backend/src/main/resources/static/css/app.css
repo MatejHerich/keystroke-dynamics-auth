@@ -329,3 +329,47 @@
         height: 0.5rem;
     }
 }
+
+.training-lead {
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+}
+
+.training-progress {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+}
+
+.training-progress span {
+    flex: 1;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--rule);
+}
+
+.training-progress span.done {
+    background: var(--pine);
+}
+
+.training-count {
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    color: var(--muted);
+}
+
+.training-count strong {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.training-message {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--red-ink);
+}
+
+.training-message:empty {
+    display: none;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tréning')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+
+<main class="container py-5" style="max-width: 520px;">
+
+    <h1 class="auth-title">Tréning písania hesla</h1>
+    <p class="training-lead">
+        Napíšte svoje heslo <span th:text="${requiredSamples}">10</span>-krát. Podľa toho, ako ho píšete,
+        vznikne váš profil písania, s ktorým sa porovná každé ďalšie prihlásenie a platba.
+    </p>
+
+    <noscript>
+        <div class="alert alert-danger">Tréning vyžaduje JavaScript. Zapnite ho v prehliadači a obnovte stránku.</div>
+    </noscript>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <div class="training-progress" aria-hidden="true">
+        <span th:each="i : ${#numbers.sequence(1, requiredSamples)}"
+              th:classappend="${i <= sampleCount} ? 'done'"></span>
+            </div>
+            <p class="training-count">
+                Uložené vzorky: <strong th:text="|${sampleCount} z ${requiredSamples}|">3 z 10</strong>
+            </p>
+
+            <form th:action="@{/training}" th:object="${trainingForm}" method="post" novalidate>
+
+                <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+                    <p class="mb-0" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+                </div>
+
+                <label for="password" class="form-label">Heslo</label>
+                <input type="password" id="password" th:field="*{password}" class="form-control"
+                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+                       autocomplete="new-password" autocapitalize="off" spellcheck="false" autofocus
+                       data-keystroke-input>
+                <div class="invalid-feedback" th:errors="*{password}"></div>
+                <input type="hidden" th:field="*{keystrokes}" data-keystroke-output>
+
+                <p class="training-message" th:if="${#fields.hasErrors('keystrokes')}" th:errors="*{keystrokes}"></p>
+                <p class="training-message" data-keystroke-message aria-live="polite"></p>
+                <p class="form-text">Píšte prirodzene. Pri preklepe sa pole vymaže a heslo napíšete znova.</p>
+
+                <button type="submit" class="btn btn-primary w-100 mt-2" data-keystroke-submit disabled>Uložiť vzorku</button>
+            </form>
+
+        </div>
+    </div>
+
+    <p class="site-note">Výskumná aplikácia k bakalárskej práci. Nejde o skutočnú banku.</p>
+</main>
+
+<script th:src="@{/js/keystroke-recorder.js}"></script>
+</body>
+</html>
