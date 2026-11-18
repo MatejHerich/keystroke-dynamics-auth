@@ -19,7 +19,7 @@ class TypingSampleTest {
                 new KeyTiming(150, 230),
                 new KeyTiming(400, 480));
 
-        TypingSample sample = TypingSample.from(keys);
+        TypingSample sample = TypingSample.from(keys, 3);
 
         assertArrayEquals(new double[]{100, 80, 80}, sample.holdTimes(), DELTA);
         assertArrayEquals(new double[]{150, 250}, sample.downDownTimes(), DELTA);
@@ -48,5 +48,23 @@ class TypingSampleTest {
     @Test
     void rejectsKeyReleasedBeforePress() {
         assertThrows(IllegalArgumentException.class, () -> new KeyTiming(400, 390));
+    }
+
+    @Test
+    void rejectsDecreasingPressTimestamps() {
+        List<KeyTiming> keys = List.of(
+                new KeyTiming(100, 180),
+                new KeyTiming(90, 170));
+
+        assertThrows(IllegalArgumentException.class, () -> TypingSample.from(keys));
+    }
+
+    @Test
+    void rejectsMismatchedPasswordLength() {
+        List<KeyTiming> keys = List.of(
+                new KeyTiming(0, 100),
+                new KeyTiming(150, 230));
+
+        assertThrows(IllegalArgumentException.class, () -> TypingSample.from(keys, 12));
     }
 }

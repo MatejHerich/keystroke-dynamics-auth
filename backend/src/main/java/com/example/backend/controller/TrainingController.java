@@ -20,7 +20,7 @@ public class TrainingController {
     public String trainingPage(Principal principal, Model model) {
         model.addAttribute("username", principal.getName());
         model.addAttribute("trainingForm",  new TrainingForm());
-        model.addAttribute("sampleCOunt", trainingService.CountSamples(principal.getName()));
+        model.addAttribute("sampleCount", trainingService.CountSamples(principal.getName()));
         model.addAttribute("requiredSamples", trainingService.getRequiredSamples());
         return "training";
     }

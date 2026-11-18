@@ -22,7 +22,7 @@ public class BiometricProfile {
     private User user;
 
     @NotNull
-    @Min(value = 5, message = "Profil musí vzniknúť aspoň z 5 tréningových vzoriek.")
+    @Min(value = 10, message = "Profil musí vzniknúť aspoň z 10 tréningových vzoriek.")
     @Column(name = "training_count", nullable = false)
     private Integer trainingCount;
 
@@ -31,13 +31,12 @@ public class BiometricProfile {
     @Column(name = "feature_stats", nullable = false)
     private String featureStats;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @PrePersist
-    @PreUpdate
-    void onSave() {
-        updatedAt = LocalDateTime.now();
+    void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     public Integer getId() {
@@ -68,7 +67,7 @@ public class BiometricProfile {
         this.featureStats = featureStats;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }

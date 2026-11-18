@@ -46,7 +46,7 @@ CREATE TABLE biometric_attempts (
     CONSTRAINT chk_biometric_attempts_type
         CHECK (attempt_type IN ('TRAINING', 'GENUINE', 'IMPOSTOR')),
     CONSTRAINT chk_biometric_attempts_context
-        CHECK (context IN ('REGISTRATION', 'PAYMENT'))
+        CHECK (context IN ('REGISTRATION', 'LOGIN', 'PAYMENT'))
 ) ENGINE = InnoDB;
 
 CREATE TABLE key_presses (
@@ -81,7 +81,7 @@ CREATE TABLE biometric_profiles (
     user_id       INT       NOT NULL,
     training_count INT       NOT NULL,
     feature_stats  JSON      NOT NULL,
-    updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id),
     CONSTRAINT fk_biometric_profiles_users
         FOREIGN KEY (user_id) REFERENCES users (id)

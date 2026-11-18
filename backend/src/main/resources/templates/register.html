@@ -8,6 +8,12 @@
   <a th:replace="~{fragments/layout :: brand}"></a>
   <h1 class="auth-title">Vytvorenie účtu</h1>
 
+  <noscript>
+    <div class="alert alert-danger" role="alert">
+      Na registráciu a zaznamenávanie dynamiky písania je potrebný zapnutý JavaScript v prehliadači.
+    </div>
+  </noscript>
+
   <div class="card shadow-sm">
     <div class="card-body p-4">
       <form th:action="@{/register}" th:object="${registrationForm}" method="post" novalidate>
@@ -28,10 +34,12 @@
           <label for="password" class="form-label">Heslo</label>
           <input type="password" id="password" th:field="*{password}" class="form-control"
                  th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+                 minlength="12" maxlength="64"
+                 onpaste="return false;" ondrop="return false;"
                  autocomplete="new-password">
           <div class="invalid-feedback" th:errors="*{password}"></div>
           <div class="form-text">
-            Aspoň 8 znakov bez diakritiky.
+            12 až 64 znakov bez diakritiky, aspoň jedno veľké písmeno, jedno malé písmeno a jedna číslica.
           </div>
         </div>
 
@@ -39,11 +47,13 @@
           <label for="passwordConfirm" class="form-label">Heslo znova</label>
           <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" class="form-control"
                  th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'is-invalid'"
+                 minlength="12" maxlength="64"
+                 onpaste="return false;" ondrop="return false;"
                  autocomplete="new-password">
           <div class="invalid-feedback" th:errors="*{passwordConfirm}"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Vytvoriť účet</button>
+        <button type="submit" id="submitBtn" class="btn btn-primary w-100">Vytvoriť účet</button>
       </form>
 
     </div>

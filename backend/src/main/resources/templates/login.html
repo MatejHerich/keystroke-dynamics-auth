@@ -8,6 +8,12 @@
     <a th:replace="~{fragments/layout :: brand}"></a>
     <h1 class="auth-title">Prihlásenie</h1>
 
+    <noscript>
+        <div class="alert alert-danger" role="alert">
+            Na prihlásenie a zaznamenávanie dynamiky písania je potrebný zapnutý JavaScript v prehliadači.
+        </div>
+    </noscript>
+
     <div class="alert alert-danger" th:if="${param.error}">
         Prihlásenie sa nepodarilo. Skontrolujte pseudonym a heslo a skúste to znova.
     </div>
@@ -32,7 +38,8 @@
                 <div class="mb-4">
                     <label for="password" class="form-label">Heslo</label>
                     <input type="password" id="password" name="password" class="form-control"
-                           autocomplete="current-password" required>
+                           onpaste="return false;" ondrop="return false;"
+                           autocomplete="off" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Prihlásiť sa</button>

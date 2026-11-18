@@ -11,8 +11,11 @@ public class RegistrationForm {
     private String username;
 
     @NotBlank(message = "Heslo je povinné.")
-    @Size(min = 8, max = 64, message = "Heslo musí mať 8 až 64 znakov.")
-    @Pattern(regexp = "[\\x20-\\x7E]+", message = "Heslo môže obsahovať len písmená bez diakritiky, číslice, bežné znaky a medzeru.")
+    @Size(min = 12, max = 64, message = "Heslo musí mať 12 až 64 znakov.")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[\\x20-\\x7E]+$",
+            message = "Heslo môže obsahovať len tlačiteľné znaky ASCII a musí obsahovať aspoň jedno veľké písmeno, jedno malé písmeno a jednu číslicu."
+    )
     private String password;
 
     @NotBlank(message = "Zopakujte heslo.")
