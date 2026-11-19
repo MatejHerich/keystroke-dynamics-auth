@@ -1,9 +1,6 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,18 +12,14 @@ public class BiometricProfile {
     @Id
     private Integer id;
 
-    @NotNull
     @MapsId
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotNull
-    @Min(value = 10, message = "Profil musí vzniknúť aspoň z 10 tréningových vzoriek.")
     @Column(name = "training_count", nullable = false)
     private Integer trainingCount;
 
-    @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "feature_stats", nullable = false)
     private String featureStats;

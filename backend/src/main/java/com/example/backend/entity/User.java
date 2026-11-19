@@ -1,10 +1,6 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -18,22 +14,16 @@ public class User {
     @Column(name = "id")
     private Integer id;
 
-    @NotBlank(message = "Pseudonym je povinný.")
-    @Size(min = 3, max = 50, message = "Pseudonym musí mať 3 až 50 znakov.")
-    @Pattern(regexp = "[A-Za-z0-9._-]+", message = "Pseudonym môže obsahovať len písmená bez diakritiky, číslice, bodku, podčiarkovník a pomlčku.")
-    @Column(name = "username", nullable = false, unique = true,length = 50)
+    @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
-    @NotBlank
-    @Size(max = 255)
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "profile_status", nullable = false, length = 20)
-    private ProfileStatus profileStatus =  ProfileStatus.TRAINING;
+    private ProfileStatus profileStatus = ProfileStatus.TRAINING;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,10 +1,6 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -18,30 +14,23 @@ public class BiometricAttempt {
     @Column(name = "id")
     private Integer id;
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "attempt_type", nullable = false, length = 20)
     private AttemptType attemptType;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "context", nullable = false, length = 20)
     private AttemptContext attemptContext;
 
-    @DecimalMin("0.0")
-    @DecimalMax("1.0")
     @Column(name = "final_score")
     private Double finalScore;
 
-    @DecimalMin("0.0")
-    @DecimalMax("1.0")
     @Column(name = "threshold")
     private Double threshold;
 
@@ -54,13 +43,6 @@ public class BiometricAttempt {
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();
-    }
-
-    @AssertTrue(message = "Tréningový pokus nemá skóre ani rozhodnutie, ostatné pokusy ich musia mať.")
-    public boolean isResultConsistentWithType() {
-        boolean noResult = finalScore == null && threshold == null && authenticated == null;
-        boolean fullResult = finalScore != null && threshold != null && authenticated != null;
-        return attemptType == AttemptType.TRAINING ? noResult : fullResult;
     }
 
     public Integer getId() {

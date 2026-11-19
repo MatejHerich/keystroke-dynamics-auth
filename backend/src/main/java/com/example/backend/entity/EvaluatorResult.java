@@ -1,7 +1,6 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "evaluator_results")
@@ -11,19 +10,13 @@ public class EvaluatorResult {
     @Column(name = "id")
     private Integer id;
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "attempt_id", nullable = false)
     private BiometricAttempt attempt;
 
-    @NotBlank
-    @Size(max = 50)
     @Column(name = "evaluator_name", nullable = false, length = 50)
     private String evaluatorName;
 
-    @NotNull
-    @DecimalMin("0.0")
-    @DecimalMax("1.0")
     @Column(name = "score", nullable = false)
     private Double score;
 

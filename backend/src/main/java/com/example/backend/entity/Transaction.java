@@ -1,7 +1,6 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -16,32 +15,23 @@ public class Transaction {
     @Column(name = "id")
     private Integer id;
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @NotNull
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "attempt_id", nullable = false, unique = true)
     private BiometricAttempt attempt;
 
-    @NotBlank(message = "IBAN príjemcu je povinný.")
-    @Pattern(regexp = "[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}", message = "IBAN musí mať 15 až 34 znakov bez medzier: kód krajiny, 2 kontrolné číslice a číslo účtu." )
     @Column(name = "recipient_iban", nullable = false, length = 34)
     private String recipientIban;
 
-    @NotNull(message = "Suma je povinná.")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Suma musí byť väčšia ako 0.")
-    @Digits(integer = 13, fraction = 2, message = "Suma môže mať najviac 13 číslic pred desatinnou čiarkou a 2 za ňou.")
     @Column(name = "amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    @Size(max = 255, message = "Popis môže mať najviac 255 znakov.")
     @Column(name = "description", length = 255)
     private String description;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "status", nullable = false, length = 20)
